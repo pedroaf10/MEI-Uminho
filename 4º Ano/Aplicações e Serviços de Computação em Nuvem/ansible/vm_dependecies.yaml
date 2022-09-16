@@ -1,0 +1,46 @@
+- name: Install dependencies for VM
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Install pip and Vim
+      apt:
+        name:
+          - python3-pip
+          - vim
+        state: present
+    
+    - name: Install Google Auth and Kubernetes package
+      command: "pip install requests google-auth kubernetes"
+
+    - name: Install ansible packages
+      command: ansible-galaxy collection install kubernetes.core
+    
+    - name: Install K8s' Prerequisites
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
+
+    - name: Add K8s GPG Key
+      shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+    - name: Add K8s repository
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+
+    - name: Update Repos
+      apt:
+        update_cache: yes
+
+    - name: Install K8s
+      apt:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl

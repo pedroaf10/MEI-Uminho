@@ -1,0 +1,8 @@
+---
+- name: Undeploy Wiki.js
+  hosts: localhost  
+  gather_facts: false  
+  environment:    
+    GOOGLE_CREDENTIALS: "{{ credentials_file }}"   
+  roles:    
+    - destroy_k8s_deployment

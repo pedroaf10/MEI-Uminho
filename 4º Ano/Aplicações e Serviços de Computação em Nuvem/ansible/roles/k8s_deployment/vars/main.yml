@@ -1,0 +1,5 @@
+---
+app: wikijs
+db: postgres
+app_image: requarks/wiki:2
+db_image: postgres:11

@@ -1,0 +1,33 @@
+---
+- name: Create K8s Cluster  
+  google.cloud.gcp_container_cluster:    
+    name: "{{ cluster_name }}"    
+    initial_node_count: "{{ initial_node_count }}"    
+    location: "{{ zone }}"    
+    network: "{{ network.name }}"    
+    project: "{{ project_id }}"   
+    addons_config:
+      http_load_balancing:
+        disabled: "no" 
+    auth_kind: serviceaccount    
+    service_account_file: "{{ credentials_file }}"    
+    state: present  
+  register: cluster 
+
+- name: Create K8s Node Pool  
+  google.cloud.gcp_container_node_pool:    
+    name: "node-pool-{{ cluster_name }}"    
+    initial_node_count: "{{ initial_node_count }}"    
+    cluster: "{{ cluster }}"    
+    config:      
+      disk_size_gb: "{{ disk_size_gb }}"      
+      disk_type: "{{ disk_type }}"      
+      machine_type: "{{ machine_type }}"    
+    location: "{{ zone }}"    
+    project: "{{ project_id }}"    
+    auth_kind: serviceaccount    
+    service_account_file: "{{ credentials_file }}"    
+    state: present
+  
+- name: "Connect to cluster"
+  shell: "gcloud container clusters get-credentials {{ cluster.name }} --zone {{ zone }} --project {{ project_id }}"

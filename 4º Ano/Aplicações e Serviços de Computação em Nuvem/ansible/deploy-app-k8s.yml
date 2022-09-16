@@ -1,0 +1,8 @@
+---
+- name: Deploy Wiki.js
+  hosts: localhost  
+  gather_facts: false  
+  environment:    
+    GOOGLE_CREDENTIALS: "{{ credentials_file }}"   
+  roles:    
+    - k8s_deployment

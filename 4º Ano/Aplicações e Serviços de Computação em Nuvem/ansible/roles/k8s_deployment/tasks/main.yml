@@ -1,0 +1,166 @@
+---
+- name: Create a k8s namespace  
+  kubernetes.core.k8s:    
+    state: present    
+    definition:      
+      apiVersion: v1      
+      kind: Namespace
+      metadata:        
+        name: "{{ namespace }}" 
+
+- name: Create Storage Class
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: gold
+      provisioner: kubernetes.io/gce-pd
+      allowVolumeExpansion: true
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
+      parameters:
+        type: pd-standard
+        fstype: ext4
+        replication-type: none
+
+- name: Create PostgreSQL service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: postgres
+        namespace: "{{ namespace }}"
+        labels:
+          app: postgres
+      spec:
+        ports:
+          - port: 5432 
+            name: postgres
+        clusterIP: None  
+        selector:
+          app: postgres
+        
+
+- name: Create Wiki.js service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: wikijs
+        namespace: "{{ namespace }}"
+      spec:
+        type: LoadBalancer
+        ports:
+          - name: http 
+            port: 3000
+        selector:
+          app: wikijs
+
+- name: Create ConfigMap Postgres
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: postgres-config
+        namespace: "{{ namespace }}"
+        labels:
+          app: postgres
+      data:
+        POSTGRES_DB: wiki
+        POSTGRES_USER: wiki
+        POSTGRES_PASSWORD: passwd
+
+- name: Create Pod for Postgres
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata: 
+        name: postgres
+        namespace: "wikijs"
+        labels:
+          app: postgres
+      spec:
+        selector:
+          matchLabels:
+            app: postgres
+        serviceName: postgres
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: postgres
+          spec:
+            containers:
+            - name: postgres
+              image: postgres:11
+              imagePullPolicy: Always
+              env:
+              - name: PGDATA
+                value: "/var/lib/postgresql/data/pgdata"
+              envFrom:
+                - configMapRef:
+                    name: postgres-config
+              ports:
+                - containerPort: 5432
+                  name: postgres-port
+              volumeMounts:
+                - mountPath: /var/lib/postgresql/data
+                  name: app-storage
+        volumeClaimTemplates:
+          - metadata:
+              name: app-storage
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: "gold"
+              resources:
+                requests:
+                  storage: 20Gi
+
+- name: Create Pod for Wiki.js
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ app }}"
+        namespace: "{{ namespace }}"
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: "{{ app }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ app }}"
+          spec:
+            containers:
+            - name: "{{ app }}"
+              image: "{{ app_image }}"
+              imagePullPolicy: Always
+              env:
+              - name: DB_TYPE
+                value: "postgres"
+              - name: DB_HOST
+                value: "postgres"
+              - name: DB_PORT
+                value: "5432"
+              - name: DB_PASS
+                value: "passwd"
+              - name: DB_USER
+                value: "wiki"
+              - name: DB_NAME
+                value: "wiki"
+              - name: UPGRADE_COMPANION
+                value: "0"

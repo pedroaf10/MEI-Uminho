@@ -1,0 +1,9 @@
+---
+- name: Destroy a k8s namespace  
+  kubernetes.core.k8s:    
+    state: absent    
+    definition:      
+      apiVersion: v1      
+      kind: Namespace
+      metadata:        
+        name: "{{ namespace }}" 
