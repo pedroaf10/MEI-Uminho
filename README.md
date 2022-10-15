@@ -1,6 +1,6 @@
 # Engenharia Informática - Universidade do Minho
 Projetos realizados ao longo do percurso académico na Universidade do Minho, no Mestrado de Engenharia Informática.
-## 1º Semestre Mestrado
+## Semestre Geral
 ### - [Aplicações e Serviços de Computação em Nuvem](https://github.com/pedroaf10/MEI-Uminho/tree/main/4%C2%BA%20Ano/Aplica%C3%A7%C3%B5es%20e%20Servi%C3%A7os%20de%20Computa%C3%A7%C3%A3o%20em%20Nuvem)
 ### - [Computação Paralela](https://github.com/pedroaf10/MEI-Uminho/tree/main/4%C2%BA%20Ano/Computa%C3%A7%C3%A3o%20Paralela)
 ### - [Dados e Aprendizagem Automática](https://github.com/pedroaf10/MEI-Uminho/tree/main/4%C2%BA%20Ano/Dados%20e%20Aprendizagem%20Autom%C3%A1tica)
